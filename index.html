@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔兽世界阵营选择：为了部落 还是 为了联盟？</title>
+    <!-- 引入 Tailwind CSS 让样式更好看 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .alliance-glow:hover {
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.6);
+        }
+        .horde-glow:hover {
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full text-center">
+        <!-- 标题 -->
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-wider text-amber-500">艾泽拉斯阵营抉择</h1>
+        <p class="text-slate-400 mb-10 text-sm md:text-base">为了艾泽拉斯的荣耀！请做出你的选择：</p >
+
+        <!-- 投票区域：两张大卡片 -->
+        <div id="voting-area" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+            <!-- 联盟 (Alliance) -->
+            <div onclick="vote('alliance')" class="group cursor-pointer bg-slate-800/80 border-2 border-blue-600/50 rounded-2xl p-8 transition-all duration-300 alliance-glow flex flex-col items-center justify-center">
+                <div class="w-24 h-24 mb-4 rounded-full bg-blue-900/40 flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform">
+                    <span class="text-4xl">🦁</span>
+                </div>
+                <h2 class="text-2xl font-bold text-blue-400 mb-2">联盟</h2>
+                <p class="text-xs text-slate-400">For the Alliance!</p >
+            </div>
+
+            <!-- 部落 (Horde) -->
+            <div onclick="vote('horde')" class="group cursor-pointer bg-slate-800/80 border-2 border-red-600/50 rounded-2xl p-8 transition-all duration-300 horde-glow flex flex-col items-center justify-center">
+                <div class="w-24 h-24 mb-4 rounded-full bg-red-900/40 flex items-center justify-center border border-red-500/30 group-hover:scale-110 transition-transform">
+                    <span class="text-4xl">🐺</span>
+                </div>
+                <h2 class="text-2xl font-bold text-red-500 mb-2">部落</h2>
+                <p class="text-xs text-slate-400">For the Horde!</p >
+            </div>
+
+        </div>
+
+        <!-- 结果展示区域（默认隐藏，投票后显示） -->
+        <div id="result-area" class="hidden bg-slate-800/50 border border-slate-700 rounded-2xl p-6 transition-all">
+            <h3 class="text-lg font-semibold mb-6 text-slate-200">当前阵营支持率</h3>
+            
+            <!-- 联盟进度条 -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-blue-400 font-bold">联盟 (Alliance)</span>
+                    <span id="alliance-pct" class="text-slate-300">0%</span>
+                </div>
+                <div class="w-full bg-slate-700 h-4 rounded-full overflow-hidden">
+                    <div id="alliance-bar" class="bg-blue-600 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- 部落进度条 -->
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-red-500 font-bold">部落 (Horde)</span>
+                    <span id="horde-pct" class="text-slate-300">0%</span>
+                </div>
+                <div class="w-full bg-slate-700 h-4 rounded-full overflow-hidden">
+                    <div id="horde-bar" class="bg-red-600 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <p id="vote-status" class="mt-6 text-xs text-amber-400/80"></p >
+        </div>
+    </div>
+
+    <!-- 简单的前端逻辑 (使用 localStorage 模拟投票，如果要联机持久化，可以接入 LeanCloud 或 Supabase 等免费后端) -->
+    <script>
+        // 本地模拟数据（生产环境可连接云端数据库）
+        let votes = JSON.parse(localStorage.getItem('wow_votes')) || { alliance: 125, horde: 142 };
+        let hasVoted = localStorage.getItem('wow_has_voted');
+
+        function updateUI() {
+            const total = votes.alliance + votes.horde;
+            const alliancePercent = total === 0 ? 50 : Math.round((votes.alliance / total) * 100);
+            const hordePercent = total === 0 ? 50 : 100 - alliancePercent;
+
+            document.getElementById('alliance-pct').innerText = alliancePercent + `% (${votes.alliance}票)`;
+            document.getElementById('horde-pct').innerText = hordePercent + `% (${votes.horde}票)`;
+            
+            document.getElementById('alliance-bar').style.width = alliancePercent + '%';
+            document.getElementById('horde-bar').style.width = hordePercent + '%';
+
+            // 如果已经投过票，直接展示结果
+            if (hasVoted) {
+                document.getElementById('result-area').classList.remove('hidden');
+                document.getElementById('vote-status').innerText = `✨ 你已经完成了选择：【${hasVoted === 'alliance' ? '联盟' : '部落'}】。为了艾泽拉斯！`;
+            }
+        }
+
+        function vote(faction) {
+            if (!hasVoted) {
+                votes[faction]++;
+                localStorage.setItem('wow_votes', JSON.stringify(votes));
+                localStorage.setItem('wow_has_voted', faction);
+                hasVoted = faction;
+            }
+            document.getElementById('result-area').classList.remove('hidden');
+            updateUI();
+        }
+
+        // 初始化加载
+        window.onload = function() {
+            if (hasVoted) {
+                document.getElementById('result-area').classList.remove('hidden');
+            }
+            updateUI();
+        };
+    </script>
+</body>
+</html>
