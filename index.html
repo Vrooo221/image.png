@@ -83,7 +83,7 @@
     <!-- 简单的前端逻辑 (使用 localStorage 模拟投票，如果要联机持久化，可以接入 LeanCloud 或 Supabase 等免费后端) -->
     <script>
         // 本地模拟数据（生产环境可连接云端数据库）
-        let votes = JSON.parse(localStorage.getItem('wow_votes')) || { alliance: 125, horde: 142 };
+        let votes = JSON.parse(localStorage.getItem('wow_votes')) || { alliance: 0, horde: 0 };
         let hasVoted = localStorage.getItem('wow_has_voted');
 
         function updateUI() {
