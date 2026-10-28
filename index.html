@@ -3,34 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魔兽世界阵营选择：为了部落 还是 为了联盟？</title>
-    <!-- 引入 Tailwind CSS -->
+    <title>艾泽拉斯阵营抉择 - 魔兽世界投票</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .alliance-glow:hover {
-            box-shadow: 0 0 30px rgba(37, 99, 235, 0.6);
-        }
-        .horde-glow:hover {
-            box-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
-        }
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .alliance-glow:hover { box-shadow: 0 0 30px rgba(37, 99, 235, 0.6); }
+        .horde-glow:hover { box-shadow: 0 0 30px rgba(220, 38, 38, 0.6); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- 顶部导航栏 -->
+    <nav class="w-full max-w-2xl flex justify-center space-x-4 mb-8 bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+        <a href=" " class="px-4 py-2 bg-amber-600 rounded-lg font-bold text-white text-sm">⚔️ 阵营投票</a >
+        <a href="ai.html" class="px-4 py-2 hover:bg-slate-700 rounded-lg text-slate-300 text-sm transition">🤖 AI 问答</a >
+        <a href="work.html" class="px-4 py-2 hover:bg-slate-700 rounded-lg text-slate-300 text-sm transition">💼 工作台</a >
+    </nav>
 
     <div class="max-w-2xl w-full text-center">
-        <!-- 标题 -->
         <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-wider text-amber-500">艾泽拉斯阵营抉择</h1>
         <p class="text-slate-400 mb-10 text-sm md:text-base">为了艾泽拉斯的荣耀！请做出你的选择（全网实时联机版）：</p >
 
-        <!-- 投票区域：两张大卡片 -->
         <div id="voting-area" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            
-            <!-- 联盟 (Alliance) -->
             <div onclick="vote('alliance')" class="group cursor-pointer bg-slate-800/80 border-2 border-blue-600/50 rounded-2xl p-8 transition-all duration-300 alliance-glow flex flex-col items-center justify-center">
                 <div class="w-24 h-24 mb-4 rounded-full bg-blue-900/40 flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform">
                     <span class="text-4xl">🦁</span>
@@ -39,7 +33,6 @@
                 <p class="text-xs text-slate-400">For the Alliance!</p >
             </div>
 
-            <!-- 部落 (Horde) -->
             <div onclick="vote('horde')" class="group cursor-pointer bg-slate-800/80 border-2 border-red-600/50 rounded-2xl p-8 transition-all duration-300 horde-glow flex flex-col items-center justify-center">
                 <div class="w-24 h-24 mb-4 rounded-full bg-red-900/40 flex items-center justify-center border border-red-500/30 group-hover:scale-110 transition-transform">
                     <span class="text-4xl">🐺</span>
@@ -47,14 +40,10 @@
                 <h2 class="text-2xl font-bold text-red-500 mb-2">部落</h2>
                 <p class="text-xs text-slate-400">For the Horde!</p >
             </div>
-
         </div>
 
-        <!-- 结果展示区域 -->
         <div id="result-area" class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 transition-all">
             <h3 class="text-lg font-semibold mb-6 text-slate-200">当前全网阵营支持率</h3>
-            
-            <!-- 联盟进度条 -->
             <div class="mb-4">
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-blue-400 font-bold">联盟 (Alliance)</span>
@@ -64,8 +53,6 @@
                     <div id="alliance-bar" class="bg-blue-600 h-full transition-all duration-1000" style="width: 0%"></div>
                 </div>
             </div>
-
-            <!-- 部落进度条 -->
             <div>
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-red-500 font-bold">部落 (Horde)</span>
@@ -75,88 +62,61 @@
                     <div id="horde-bar" class="bg-red-600 h-full transition-all duration-1000" style="width: 0%"></div>
                 </div>
             </div>
-
             <p id="vote-status" class="mt-6 text-xs text-amber-400/80"></p >
         </div>
     </div>
 
-    <!-- 联网同步逻辑 -->
     <script>
         let votes = { alliance: 0, horde: 0 };
         let hasVoted = localStorage.getItem('wow_has_voted_global');
-
-        // 使用免费的公共云端计数 API
         const API_ALLIANCE = 'https://countapi.mileshilliard.com/api/v1/get/vrooo221_wow_alliance_v2';
         const API_ALLIANCE_HIT = 'https://countapi.mileshilliard.com/api/v1/hit/vrooo221_wow_alliance_v2';
-        
         const API_HORDE = 'https://countapi.mileshilliard.com/api/v1/get/vrooo221_wow_horde_v2';
         const API_HORDE_HIT = 'https://countapi.mileshilliard.com/api/v1/hit/vrooo221_wow_horde_v2';
 
         async function fetchVotes() {
             try {
-                const [resA, resH] = await Promise.all([
-                    fetch(API_ALLIANCE),
-                    fetch(API_HORDE)
-                ]);
+                const [resA, resH] = await Promise.all([fetch(API_ALLIANCE), fetch(API_HORDE)]);
                 const dataA = await resA.json();
                 const dataH = await resH.json();
-
                 votes.alliance = parseInt(dataA.value || 0);
                 votes.horde = parseInt(dataH.value || 0);
                 updateUI();
-            } catch (e) {
-                console.error("同步票数失败", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function updateUI() {
             const total = votes.alliance + votes.horde;
             const alliancePercent = total === 0 ? 50 : Math.round((votes.alliance / total) * 100);
             const hordePercent = total === 0 ? 50 : 100 - alliancePercent;
-
             document.getElementById('alliance-pct').innerText = alliancePercent + `% (${votes.alliance}票)`;
             document.getElementById('horde-pct').innerText = hordePercent + `% (${votes.horde}票)`;
-            
             document.getElementById('alliance-bar').style.width = alliancePercent + '%';
             document.getElementById('horde-bar').style.width = hordePercent + '%';
-
             if (hasVoted) {
-                document.getElementById('vote-status').innerText = `✨ 你已经完成了选择：【${hasVoted === 'alliance' ? '联盟' : '部落'}】。全网数据实时互通！`;
+                document.getElementById('vote-status').innerText = `✨ 你已选择：【${hasVoted === 'alliance' ? '联盟' : '部落'}】`;
             } else {
-                document.getElementById('vote-status').innerText = `💡 每个人仅可投一票，数据已接入全网云端实时同步！`;
+                document.getElementById('vote-status').innerText = `💡 每个人仅可投一票，全网实时同步`;
             }
         }
 
         async function vote(faction) {
-            if (hasVoted) {
-                alert('你已经投过票啦，不能重复投票哦！');
-                return;
-            }
-
+            if (hasVoted) { alert('你已经投过票啦！'); return; }
             try {
                 const hitUrl = faction === 'alliance' ? API_ALLIANCE_HIT : API_HORDE_HIT;
                 const res = await fetch(hitUrl);
                 const data = await res.json();
-
-                if (faction === 'alliance') {
-                    votes.alliance = parseInt(data.value);
-                } else {
-                    votes.horde = parseInt(data.value);
-                }
-
+                if (faction === 'alliance') votes.alliance = parseInt(data.value);
+                else votes.horde = parseInt(data.value);
                 localStorage.setItem('wow_has_voted_global', faction);
                 hasVoted = faction;
                 updateUI();
-                alert('投票成功！全网数据已更新！');
-            } catch (e) {
-                alert('网络开小差了，请稍后重试！');
-            }
+                alert('投票成功！');
+            } catch (e) { alert('网络错误'); }
         }
 
-        // 页面打开时自动同步云端票数
-        window.onload = function() {
-            fetchVotes();
-        };
+        window.onload = fetchVotes;
     </script>
 </body>
 </html>
+
