@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 智能问答 - 个人工作台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- 顶部导航栏 -->
+    <nav class="w-full max-w-2xl flex justify-center space-x-4 mb-6 bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+        <a href=" " class="px-4 py-2 hover:bg-slate-700 rounded-lg text-slate-300 text-sm transition">⚔️ 阵营投票</a >
+        <a href="ai.html" class="px-4 py-2 bg-amber-600 rounded-lg font-bold text-white text-sm">🤖 AI 问答</a >
+        <a href="work.html" class="px-4 py-2 hover:bg-slate-700 rounded-lg text-slate-300 text-sm transition">💼 工作台</a >
+    </nav>
+
+    <div class="max-w-2xl w-full flex flex-col h-[75vh] bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-xl">
+        <h1 class="text-xl font-bold text-amber-500 mb-4 text-center">🤖 AI 智能助手 (本地自动保存对话)</h1>
+        
+        <!-- 聊天记录展示框 -->
+        <div id="chat-container" class="flex-1 overflow-y-auto space-y-4 pr-2 mb-4">
+            <!-- 动态填充 -->
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="flex gap-2">
+            <input type="text" id="user-input" placeholder="输入你想问的问题..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500">
+            <button onclick="sendMessage()" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2 rounded-xl font-bold transition">发送</button>
+            <button onclick="clearChat()" class="bg-red-600/40 hover:bg-red-600/60 text-red-300 px-3 py-2 rounded-xl text-xs transition">清空记录</button>
+        </div>
+    </div>
+
+    <script>
+        let messages = JSON.parse(localStorage.getItem('ai_chat_history')) || [
+            { role: 'ai', text: '你好！我是你的专属 AI 助手。你可以问我任何问题，你的所有对话都会自动保存在本地，刷新也不会丢失。' }
+        ];
+
+        function renderChat() {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = '';
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
+                div.innerHTML = `<div class="max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-200'}">${msg.text}</div>`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            messages.push({ role: 'user', text: text });
+            input.value = '';
+            renderChat();
+            saveHistory();
+
+            // 模拟 AI 回复（如果需要接入真实的 OpenAI/大模型 API，可以把这部分换成 fetch 请求）
+            setTimeout(() => {
+                let aiReply = `收到你的问题：“${text}”。这是一个模拟回复，你可以在代码里接入你自己的 API 密钥来获取真正的 AI 回答！`;
+                messages.push({ role: 'ai', text: aiReply });
+                renderChat();
+                saveHistory();
+            }, 600);
+        }
+
+        function saveHistory() {
+            localStorage.setItem('ai_chat_history', JSON.stringify(messages));
+        }
+
+        function clearChat() {
+            if (confirm('确定要清空所有聊天记录吗？')) {
+                localStorage.removeItem('ai_chat_history');
+                messages = [{ role: 'ai', text: '记录已清空。' }];
+                renderChat();
+            }
+        }
+
+        window.onload = renderChat;
+    </script>
+</body>
+</html>
